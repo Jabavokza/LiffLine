@@ -7,7 +7,13 @@
     <style>
         body { font-family: sans-serif; text-align: center; padding-top: 50px; }
         img { border-radius: 50%; width: 100px; height: 100px; }
-        #userInfo { display: none; }
+        #userInfo { display: none; margin-bottom: 20px;}
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -21,41 +27,69 @@
     </div>
     <p id="status"></p>
     
+    <div id="button-area" style="display: none;">
+        <button id="sendMessageButton">ส่งข้อความและปิด</button>
+        <button id="closeButton">ปิด</button>
+    </div>
+    
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <script>
-        // 2. เขียนโค้ด JavaScript เพื่อเรียกใช้ LIFF
         async function main() {
             try {
-                // 3. เริ่มต้น LIFF App
-                // *** ใส่ LIFF ID ของคุณตรงนี้ ***
                 await liff.init({ liffId: "2008402367-PlQMLJrx" });
 
                 document.getElementById('status').innerText = 'LIFF init succeeded.';
 
-                // 4. ตรวจสอบว่าผู้ใช้ Login หรือยัง
                 if (!liff.isLoggedIn()) {
                     document.getElementById('status').innerText = 'Please log in.';
-                    liff.login(); // ถ้ายังไม่ Login ให้เรียกหน้า Login
+                    liff.login();
                 } else {
                     document.getElementById('status').innerText = 'You are logged in.';
-                    // 5. ถ้า Login แล้ว ให้ดึงข้อมูลโปรไฟล์
+                    
                     const profile = await liff.getProfile();
                     
-                    // 6. แสดงผลข้อมูล
                     document.getElementById("pictureUrl").src = profile.pictureUrl;
                     document.getElementById("displayName").innerText = profile.displayName;
                     document.getElementById("userId").innerText = "User ID: " + profile.userId;
                     document.getElementById("userInfo").style.display = "block";
-                }
 
+                    // NEW -->: เมื่อ Login สำเร็จแล้ว ให้แสดงโซนปุ่ม
+                    document.getElementById("button-area").style.display = "block";
+
+                    // NEW -->: เพิ่มโค้ดสำหรับจัดการการคลิกปุ่ม
+                    // 1. จัดการปุ่ม "ส่งข้อความและปิด"
+                    const sendMessageButton = document.getElementById('sendMessageButton');
+                    sendMessageButton.onclick = () => {
+                        liff.sendMessages([
+                            {
+                                type: 'text',
+                                text: 'สวัสดี! นี่คือข้อความจาก LIFF App ของฉัน'
+                            }
+                        ])
+                        .then(() => {
+                            // เมื่อส่งสำเร็จ ให้ปิดหน้าต่าง
+                            liff.closeWindow();
+                        })
+                        .catch((err) => {
+                            console.error('Error sending message: ', err);
+                            alert('ไม่สามารถส่งข้อความได้');
+                        });
+                    };
+
+                    // 2. จัดการปุ่ม "ปิด"
+                    const closeButton = document.getElementById('closeButton');
+                    closeButton.onclick = () => {
+                        liff.closeWindow();
+                    };
+                    // <-- สิ้นสุดโค้ดส่วนที่เพิ่มใหม่
+                }
             } catch (err) {
                 document.getElementById('status').innerText = 'LIFF init failed.';
                 console.error(err);
             }
         }
 
-        // เรียกใช้ฟังก์ชัน main เมื่อหน้าเว็บโหลดเสร็จ
         main();
     </script>
 
