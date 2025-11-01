@@ -1,88 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First LIFF App</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-        img { border-radius: 50%; width: 100px; height: 100px; }
-        #userInfo { display: none; margin-bottom: 20px;}
-        button {
-            font-size: 16px;
-            padding: 10px 20px;
-            margin: 5px;
-            cursor: pointer;
-        }
-    </style>
+    <title>LIFF App with Email</title>
 </head>
 <body>
-
     <h1>Welcome to LIFF!</h1>
     <div id="userInfo">
         <p>สวัสดีคุณ:</p>
         <img id="pictureUrl" src="" alt="Profile Picture">
         <p id="displayName"></p>
         <p id="userId"></p>
+        <p id="email" style="font-weight: bold;"></p>
     </div>
     <p id="status"></p>
-    
-    <div id="button-area" style="display: none;">
-        <button id="sendMessageButton">ส่งข้อความและปิด</button>
-        <button id="closeButton">ปิด</button>
-    </div>
-    
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
     <script>
         async function main() {
             try {
-                await liff.init({ liffId: "2008402367-PlQMLJrx" });
-
-                document.getElementById('status').innerText = 'LIFF init succeeded.';
+                await liff.init({ liffId: "YOUR_LIFF_ID" }); // ใส่ LIFF ID ของคุณ
 
                 if (!liff.isLoggedIn()) {
-                    document.getElementById('status').innerText = 'Please log in.';
                     liff.login();
                 } else {
                     document.getElementById('status').innerText = 'You are logged in.';
-                    
+
+                    // --- ส่วนที่เปลี่ยนแปลง ---
+                    // 1. ดึงข้อมูลโปรไฟล์ (เหมือนเดิม) เพื่อเอารูปและชื่อ
                     const profile = await liff.getProfile();
-                    
                     document.getElementById("pictureUrl").src = profile.pictureUrl;
                     document.getElementById("displayName").innerText = profile.displayName;
                     document.getElementById("userId").innerText = "User ID: " + profile.userId;
+
+                    // 2. ดึง ID Token เพื่อเอาอีเมล
+                    const idToken = liff.getDecodedIDToken();
+                    const userEmail = idToken.email; // <-- ดึงอีเมลจากตรงนี้
+
+                    if (userEmail) {
+                        document.getElementById("email").innerText = "Email: " + userEmail;
+                    } else {
+                        document.getElementById("email").innerText = "ไม่ได้รับอนุญาตให้เข้าถึงอีเมล";
+                    }
+                    // --- สิ้นสุดส่วนที่เปลี่ยนแปลง ---
+
                     document.getElementById("userInfo").style.display = "block";
-
-                    // NEW -->: เมื่อ Login สำเร็จแล้ว ให้แสดงโซนปุ่ม
-                    document.getElementById("button-area").style.display = "block";
-
-                    // NEW -->: เพิ่มโค้ดสำหรับจัดการการคลิกปุ่ม
-                    // 1. จัดการปุ่ม "ส่งข้อความและปิด"
-                    const sendMessageButton = document.getElementById('sendMessageButton');
-                    sendMessageButton.onclick = () => {
-                        liff.sendMessages([
-                            {
-                                type: 'text',
-                                text: 'สวัสดี! นี่คือข้อความจาก LIFF App ของฉัน'
-                            }
-                        ])
-                        .then(() => {
-                            // เมื่อส่งสำเร็จ ให้ปิดหน้าต่าง
-                            liff.closeWindow();
-                        })
-                        .catch((err) => {
-                            console.error('Error sending message: ', err);
-                            alert('ไม่สามารถส่งข้อความได้');
-                        });
-                    };
-
-                    // 2. จัดการปุ่ม "ปิด"
-                    const closeButton = document.getElementById('closeButton');
-                    closeButton.onclick = () => {
-                        liff.closeWindow();
-                    };
-                    // <-- สิ้นสุดโค้ดส่วนที่เพิ่มใหม่
+                    // ... โค้ดส่วนจัดการปุ่มเหมือนเดิม ...
                 }
             } catch (err) {
                 document.getElementById('status').innerText = 'LIFF init failed.';
@@ -92,6 +53,5 @@
 
         main();
     </script>
-
 </body>
 </html>
